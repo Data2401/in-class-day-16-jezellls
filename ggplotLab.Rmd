@@ -110,9 +110,7 @@ How tall is the tallest woman? How short is the shortest man?
 
 ```{R}
 
-hei %>%
-  group_by(heights) %>%
-  summarise(max(Female), max(Male))
+hei 
 ```
 
 Use your summary table and pipe it to a ggplot to make a bar graph showing the mean of both groups.
