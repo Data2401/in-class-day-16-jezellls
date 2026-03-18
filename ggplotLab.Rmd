@@ -26,71 +26,96 @@ This data is the heights of humans, divided by their biological sex.
 Use ggplot to make a histogram of all of the heights:
 
 ```{r}
-
+h1 <- ggplot(data = heights, mapping = aes(x = height)) 
+h1 + geom_histogram(binwidth = 10, fill = "salmon", color = "red")
+   
 
 ```
 
 Change up the binwidth and see how the plots change. Try 1, 5, 10, and 20
 
 ```{r}
-
+h1 + geom_histogram(binwidth = 1, fill = "salmon", color = "red")
 ```
 
 Smooth this out to an emperical density with `geom_density()`
 
 ```{r}
-
+h1 + geom_histogram(binwidth = 1, fill = "salmon", color = "red") + geom_density()
 ```
 
 Use a new argument in the `aes()`, `group =` to split this density by sex
 
 ```{r}
-
+h2 <- ggplot(data = heights, mapping = aes(x = height, group = sex)) 
+h2 + geom_histogram(binwidth = 1, fill = "salmon", color = "red") + geom_density()
+   
 ```
 
 OR we can do it with `color` or `fill.` If you say you want to color by sex, R knows that you want a different curve for each of them.
 
 ```{r}
 
-
+h2 <- ggplot(data = heights, mapping = aes(x = height, 
+                                           group = sex, 
+                                           fill = sex)) 
+h2 + geom_histogram(binwidth = 1) + geom_density()
 ```
 
 If you've used fill, then there is now a slight issue that they are overlapped. We can fix this with alpha transparency!
 
 ```{r}
-
+h2 <- ggplot(data = heights, mapping = aes(x = height, 
+                                           group = sex, 
+                                           fill = sex)) 
+h2 + geom_histogram(binwidth = 1) + geom_density() + facet_grid(sex ~.)
 
 ```
 
 Let's make some boxplots of the same information.
 
 ```{r}
+h3 <- ggplot(data = heights, mapping = aes(x = height, 
+                                           group = sex, 
+                                           fill = sex)) + 
+                                           geom_boxplot(alpha = 1/2)
 
+h3
 ```
 
-## Quantatitive summaries:  
+## Quantatitive summaries:
 
-Find the mean and median overall. 
+Find the mean and median overall.
 
 ```{r}
-
+heights %>% summarise(meanOv = mean(height),
+                      median = (height))
 ```
 
-Find the mean and median for both groups. 
+Find the mean and median for both groups.
 
 ```{r}
+heights %>% summarise(meanOv = mean(height),
+                      medOv = median(height), 
+                      .by = sex) # experimental
 
+## OR this works too 
+hei <-heights %>% group_by(sex) %>%
+  summarise(meanOv = mean(height),
+                      medOv = median(height))
 
 ```
 
-How tall is the tallest woman? How short is the shortest man? 
+How tall is the tallest woman? How short is the shortest man?
 
 ```{R}
 
-
+hei %>%
+  group_by(heights) %>%
+  summarise(max(Female), max(Male))
 ```
 
-Use your summary table and pipe it to a ggplot to make a bar graph showing the mean of both groups. 
+Use your summary table and pipe it to a ggplot to make a bar graph showing the mean of both groups.
 
 ```{R}
 
@@ -111,7 +136,7 @@ glimpse(votedata)
 
 Let's look at the democratic vote by state for 2000. We can't use `geom_bar` for a bar chart, since we have the category in one variable and the "height" of the bar in another. We need `geom_col()`
 
-Make a bar graph of the democratic vote by state in 2000. 
+Make a bar graph of the democratic vote by state in 2000.
 
 ```{r}
 
@@ -119,9 +144,9 @@ Make a bar graph of the democratic vote by state in 2000.
 
 ```
 
-Well this looks awful. We have two options: swap the x and y or the more fun sounding... Coordinate flip! 
+Well this looks awful. We have two options: swap the x and y or the more fun sounding... Coordinate flip!
 
-Use `coord_flip()` on the previous graph to make it better. 
+Use `coord_flip()` on the previous graph to make it better.
 
 ```{r fig.height=7, fig.width=5}
 
@@ -131,8 +156,7 @@ Use `coord_flip()` on the previous graph to make it better.
 
 I don't love the squashed together coordinates, but it's a display window issue.
 
-So. This is a helpful graph, but it would be *more* helpful if it was ordered. 
-Use `x = reorder(x_variable, y_variable)` in `aes()` to order the x variable by the y variable
+So. This is a helpful graph, but it would be *more* helpful if it was ordered. Use `x = reorder(x_variable, y_variable)` in `aes()` to order the x variable by the y variable
 
 ```{r}
 
@@ -140,7 +164,7 @@ Use `x = reorder(x_variable, y_variable)` in `aes()` to order the x variable by 
 
 ```
 
-So, what if I want to see what the north and south states did different? 
+So, what if I want to see what the north and south states did different?
 
 start with a facet_wrap using the `south` variable:
 
@@ -193,9 +217,9 @@ When using geom_polygon or geom_map, you will typically need two data frames:
 -   one contains the coordinates of each polygon (positions)
 -   the other the values associated with each polygon (values).
 
-An id variable links the two together. 
+An id variable links the two together.
 
-Run the below example code to get map graphs for votes in 2008 and then 2016. 
+Run the below example code to get map graphs for votes in 2008 and then 2016.
 
 ```{r}
 library(maps)
@@ -225,19 +249,18 @@ What if I want a map that shows which of the states are "south"? What do I chang
 
 ```
 
-
 ### Some more dplyr practice
 
 I want to know the average democratic vote for N vs S, by year.
 
-First, find the average democratic votes for the north and the south, every year. You'll need to do a *double* `group_by()` here. You do it in one call of the function.  
+First, find the average democratic votes for the north and the south, every year. You'll need to do a *double* `group_by()` here. You do it in one call of the function.
 
 ```{r}
 
 
 ```
 
-Then, let's plot that! Pipe the result of your group_by and summarize to ggplot and geom_line(), with year on the x axis and your summarized value on the y axis. Color by the `south` variable. 
+Then, let's plot that! Pipe the result of your group_by and summarize to ggplot and geom_line(), with year on the x axis and your summarized value on the y axis. Color by the `south` variable.
 
 ```{r}
 
@@ -290,7 +313,7 @@ Maybe let's try replacing the boxplot with a `geom_violin()`?
 
 ```
 
-## More Practice with Penguins 
+## More Practice with Penguins
 
 -   Count the number of male and female penguins for each species.
 -   Find the average penguin mass for each island
@@ -300,7 +323,7 @@ Maybe let's try replacing the boxplot with a `geom_violin()`?
 -   Plot the density of the flipper length, colored by sex
 -   Plot the density of the body mass, colored by year
 
-<or, make your own similar graphs with any of the data we've used in class so far!>
+\<or, make your own similar graphs with any of the data we've used in class so far!\>
 
 ```{r}
 
